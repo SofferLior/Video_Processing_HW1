@@ -37,7 +37,8 @@ def bgr_image_to_rgb_image(bgr_image: np.ndarray) -> np.ndarray:
         image and in the third dimension, swap the first and last slices.
     """
     rgb_image = bgr_image.copy()
-    """INSERT YOUR CODE HERE."""
+    rgb_image[:, :, 0] = bgr_image[:, :, 2]
+    rgb_image[:, :, 2] = bgr_image[:, :, 0]
     return rgb_image
 
 
@@ -55,9 +56,7 @@ def black_and_white_image_to_tiles(arr: np.ndarray, nrows: int,
     Take inspiration from: https://stackoverflow.com/questions/16873441/form-a-big-2d-array-from-multiple-smaller-2d-arrays
     """
     h, w = arr.shape
-    """INSERT YOUR CODE HERE.
-    REPLACE THE RETURNED VALUE WITH YOUR OWN IMPLEMENTATION.
-    """
+
     return np.random.uniform(size=((h//nrows) * (w //ncols), nrows, ncols))
 
 
