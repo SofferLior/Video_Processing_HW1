@@ -56,8 +56,9 @@ def black_and_white_image_to_tiles(arr: np.ndarray, nrows: int,
     Take inspiration from: https://stackoverflow.com/questions/16873441/form-a-big-2d-array-from-multiple-smaller-2d-arrays
     """
     h, w = arr.shape
-
-    return np.random.uniform(size=((h//nrows) * (w //ncols), nrows, ncols))
+    reshaped_matrix_four_dim = arr.reshape(h//nrows, nrows, -1, ncols)
+    arranged_tiles_matrix = reshaped_matrix_four_dim.swapaxes(1,2)
+    return arranged_tiles_matrix.reshape(-1,nrows,ncols)
 
 
 def image_tiles_to_black_and_white_image(arr: np.ndarray, h: int,
@@ -74,10 +75,9 @@ def image_tiles_to_black_and_white_image(arr: np.ndarray, h: int,
     Take inspiration from: https://stackoverflow.com/questions/16873441/form-a-big-2d-array-from-multiple-smaller-2d-arrays
     """
     n, nrows, ncols = arr.shape
-    """INSERT YOUR CODE HERE.
-    REPLACE THE RETURNED VALUE WITH YOUR OWN IMPLEMENTATION.
-    """
-    return np.random.uniform(size=(h, w))
+    four_dim_matrix = arr.reshape(h//nrows,-1,nrows,ncols)
+    rearranged_matrix = four_dim_matrix.swapaxes(1,2)
+    return rearranged_matrix.reshape(h,w)
 
 
 def test_tiles_functions(to_save: bool = False) -> None:
