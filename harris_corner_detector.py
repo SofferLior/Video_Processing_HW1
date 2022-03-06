@@ -149,8 +149,20 @@ def create_grad_x_and_grad_y(
     """INSERT YOUR CODE HERE.
     REPLACE THE VALUES FOR Ix AND Iy WITH THE GRADIENTS YOU COMPUTED.
     """
-    Ix = np.random.uniform(size=(height, width))
-    Iy = np.random.uniform(size=(height, width))
+    if nof_color_channels == 3:
+        input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2GRAY)
+    shifted_image_y = np.zeros((input_image.shape[0]+1, input_image.shape[1]))
+    shifted_image_y[1:, :] = input_image.copy()
+    padded_image_x = np.zeros(shifted_image_y.shape)
+    padded_image_x[:-1, :] = input_image.copy()
+    Iy = (padded_image_x - shifted_image_y)[1:, :]
+
+    shifted_image_x = np.zeros((input_image.shape[0], input_image.shape[1] + 1))
+    shifted_image_x[:, 1:] = input_image.copy()
+    padded_image_x = np.zeros(shifted_image_x.shape)
+    padded_image_x[:, :-1] = input_image.copy()
+    Ix = (padded_image_x - shifted_image_x)[:, 1:]
+
     return Ix, Iy
 
 
