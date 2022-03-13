@@ -2,7 +2,6 @@
 import os
 import cv2
 
-
 # Replace ID1 and ID2 with your IDs.
 ID1 = '203135058'
 ID2 = '203764170'
@@ -48,10 +47,29 @@ def convert_video_to_grayscale(input_video_path: str,
     https://docs.microsoft.com/en-us/windows/win32/medfound/video-fourccs
 
     """
-    """INSERT YOUR CODE HERE.
-    REMOVE THE pass KEYWORD AND IMPLEMENT YOUR OWN CODE.
-    """
-    pass
+
+    # read video
+    capture = cv2.VideoCapture(input_video_path)
+
+    # print get output - might need to do something else here
+    capture_info = get_video_parameters(capture)
+
+    # open a new video file
+    new_video = cv2.VideoWriter(output_video_path, capture_info['fourcc'], capture_info['fps'], (capture_info['width'], capture_info['height']), 0)
+
+    # read video frames and convert to grayscale
+    success, image = capture.read()
+    count = 0
+    while success:
+        grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        new_video.write(grayscale_image)
+        success, image = capture.read()
+        count += 1
+
+    # release the video and close
+    capture.release()
+    new_video.release()
+    cv2.destroyAllWindows()
 
 
 def convert_video_to_black_and_white(input_video_path: str,
@@ -76,10 +94,34 @@ def convert_video_to_black_and_white(input_video_path: str,
     https://docs.microsoft.com/en-us/windows/win32/medfound/video-fourccs
 
     """
-    """INSERT YOUR CODE HERE.
-        REMOVE THE pass KEYWORD AND IMPLEMENT YOUR OWN CODE.
-        """
-    pass
+    # read video
+    capture = cv2.VideoCapture(input_video_path)
+
+    # print get output - might need to do something else here
+    capture_info = {"framecount": capture.get(cv2.CAP_PROP_FRAME_COUNT),
+                    "fps": capture.get(cv2.CAP_PROP_FPS),
+                    "width": int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                    "height": int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+                    "codec": int(capture.get(cv2.CAP_PROP_FOURCC))}
+
+    # open a new video file
+    new_video = cv2.VideoWriter(output_video_path, capture_info['codec'], capture_info['fps'], (capture_info['width'], capture_info['height']))
+
+    # read video frames and convert to black and white
+    success, image = capture.read()
+    count = 0
+    while success:
+        grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        _, bw_image = cv2.threshold(grayscale_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        new_rgb_frame = cv2.cvtColor(bw_image, cv2.COLOR_GRAY2RGB)
+        new_video.write(new_rgb_frame)
+        success, image = capture.read()
+        count += 1
+
+    # release the video and close
+    capture.release()
+    new_video.release()
+    cv2.destroyAllWindows()
 
 
 def convert_video_to_sobel(input_video_path: str,
@@ -104,10 +146,34 @@ def convert_video_to_sobel(input_video_path: str,
     https://docs.microsoft.com/en-us/windows/win32/medfound/video-fourccs
 
     """
-    """INSERT YOUR CODE HERE.
-        REMOVE THE pass KEYWORD AND IMPLEMENT YOUR OWN CODE.
-        """
-    pass
+    # read video
+    capture = cv2.VideoCapture(input_video_path)
+
+    # print get output - might need to do something else here
+    capture_info = {"framecount": capture.get(cv2.CAP_PROP_FRAME_COUNT),
+                    "fps": capture.get(cv2.CAP_PROP_FPS),
+                    "width": int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                    "height": int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+                    "codec": int(capture.get(cv2.CAP_PROP_FOURCC))}
+
+    # open a new video file
+    new_video = cv2.VideoWriter(output_video_path, capture_info['codec'], capture_info['fps'], (capture_info['width'], capture_info['height']))
+
+    # read video frames and apply sobel filter
+    success, image = capture.read()
+    count = 0
+    while success:
+        grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        sobel_image = cv2.Sobel(grayscale_image, ddepth=-1, dx=1, dy=1, ksize=5)
+        new_rgb_frame = cv2.cvtColor(sobel_image, cv2.COLOR_GRAY2RGB)
+        new_video.write(new_rgb_frame)
+        success, image = capture.read()
+        count += 1
+
+    # release the video and close
+    capture.release()
+    new_video.release()
+    cv2.destroyAllWindows()
 
 
 def main():
