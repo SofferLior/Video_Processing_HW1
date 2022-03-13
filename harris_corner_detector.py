@@ -10,9 +10,9 @@ ID1 = '203135058'
 ID2 = '203764170'
 
 # Harris corner detector parameters - you may change them.
-K = 0.05
-CHECKERBOARD_THRESHOLD = 1e1
-GIRAFFE_THRESHOLD = 1e6
+K = 0.06
+CHECKERBOARD_THRESHOLD = 20e1
+GIRAFFE_THRESHOLD = 80e6
 BUTTERFLY_IMAGE = 'butterfly.jpg'
 
 # Do not change the following constants:
@@ -146,9 +146,6 @@ def create_grad_x_and_grad_y(
         nof_color_channels = 3
         height, width, _ = input_image.shape
 
-    """INSERT YOUR CODE HERE.
-    REPLACE THE VALUES FOR Ix AND Iy WITH THE GRADIENTS YOU COMPUTED.
-    """
     if nof_color_channels == 3:
         input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2GRAY)
     shifted_image_y = np.zeros((input_image.shape[0]+1, input_image.shape[1]))
@@ -192,11 +189,18 @@ def calculate_response_image(input_image: np.ndarray, K: float) -> np.ndarray:
     """
     # compute Ix and Iy
     Ix, Iy = create_grad_x_and_grad_y(input_image)
+    # create the kernel
+    g = np.ones((5, 5))
 
-    """INSERT YOUR CODE HERE.
-    REPLACE THE resonse_image WITH THE RESPONSE IMAGE YOU CALCULATED."""
+    # calc response image
+    Sxx = signal.convolve2d(np.square(Ix), g, mode='same')
+    Syy = signal.convolve2d(np.square(Iy), g, mode='same')
+    Sxy = signal.convolve2d(np.multiply(Ix, Iy), g, mode='same')
 
-    response_image = np.random.uniform(size=Ix.shape)
+    det_M = np.multiply(Sxx, Syy) - np.square(Sxy)
+    trace_M = Sxx + Syy
+
+    response_image = det_M - K * np.square(trace_M)
     return response_image
 
 
@@ -227,9 +231,28 @@ def our_harris_corner_detector(input_image: np.ndarray, K: float,
     ones where the image from (3) is larger than the threshold.
     """
     response_image = calculate_response_image(input_image, K)
-    """INSERT YOUR CODE HERE.
-    REPLACE THE output_image WITH THE BINARY MAP YOU COMPUTED."""
-    output_image = np.random.uniform(size=response_image.shape)
+    tiles_response_image = black_and_white_image_to_tiles(response_image, 25, 25)
+    num_of_tiles = tiles_response_image.shape[0]
+
+    # non maximal suppression
+    non_max_supp_tiles = np.empty(tiles_response_image.shape)
+    for tile in range(num_of_tiles):
+        non_max_supp_tiles[tile] = np.zeros((25, 25))
+        max_idx = np.unravel_index(np.argmax(tiles_response_image[tile]), (25, 25))
+        non_max_supp_tiles[tile][max_idx] = tiles_response_image[tile][max_idx]
+    # create output image
+    height = input_image.shape[0]
+    width = input_image.shape[1]
+    non_max_supp = image_tiles_to_black_and_white_image(non_max_supp_tiles, height, width)
+    output_image = np.zeros((height, width))
+    output_image[non_max_supp > threshold] = 1
+    # ignore the frame pixels
+    #TODO: check if this is OK
+    #TODO: check giraff th
+    output_image[-5:, :] = 0
+    output_image[:5, :] = 0
+    output_image[:, :5] = 0
+    output_image[:, -5:] = 0
     return output_image
 
 
@@ -335,4 +358,4 @@ def main(to_save: bool = False) -> None:
 
 
 if __name__ == "__main__":
-    main(to_save=False)
+    main(to_save=True)
