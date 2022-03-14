@@ -150,14 +150,18 @@ def create_grad_x_and_grad_y(
         input_image = cv2.cvtColor(input_image, cv2.COLOR_RGB2GRAY)
     shifted_image_y = np.zeros((input_image.shape[0]+1, input_image.shape[1]))
     shifted_image_y[1:, :] = input_image.copy()
+    shifted_image_y[0, :] = 255
     padded_image_x = np.zeros(shifted_image_y.shape)
     padded_image_x[:-1, :] = input_image.copy()
+    padded_image_x[-1, :] = 255
     Iy = (padded_image_x - shifted_image_y)[1:, :]
 
     shifted_image_x = np.zeros((input_image.shape[0], input_image.shape[1] + 1))
     shifted_image_x[:, 1:] = input_image.copy()
+    shifted_image_y[:, 0] = 255
     padded_image_x = np.zeros(shifted_image_x.shape)
     padded_image_x[:, :-1] = input_image.copy()
+    padded_image_x[:, -1] = 255
     Ix = (padded_image_x - shifted_image_x)[:, 1:]
 
     return Ix, Iy
@@ -193,9 +197,9 @@ def calculate_response_image(input_image: np.ndarray, K: float) -> np.ndarray:
     g = np.ones((5, 5))
 
     # calc response image
-    Sxx = signal.convolve2d(np.square(Ix), g, mode='same')
-    Syy = signal.convolve2d(np.square(Iy), g, mode='same')
-    Sxy = signal.convolve2d(np.multiply(Ix, Iy), g, mode='same')
+    Sxx = signal.convolve2d(np.square(Ix), g, mode='same', boundary='symm')
+    Syy = signal.convolve2d(np.square(Iy), g, mode='same', boundary='symm')
+    Sxy = signal.convolve2d(np.multiply(Ix, Iy), g, mode='same', boundary='symm')
 
     det_M = np.multiply(Sxx, Syy) - np.square(Sxy)
     trace_M = Sxx + Syy
@@ -240,19 +244,13 @@ def our_harris_corner_detector(input_image: np.ndarray, K: float,
         non_max_supp_tiles[tile] = np.zeros((25, 25))
         max_idx = np.unravel_index(np.argmax(tiles_response_image[tile]), (25, 25))
         non_max_supp_tiles[tile][max_idx] = tiles_response_image[tile][max_idx]
+
     # create output image
     height = input_image.shape[0]
     width = input_image.shape[1]
     non_max_supp = image_tiles_to_black_and_white_image(non_max_supp_tiles, height, width)
     output_image = np.zeros((height, width))
     output_image[non_max_supp > threshold] = 1
-    # ignore the frame pixels
-    #TODO: check if this is OK
-    #TODO: check giraff th
-    output_image[-5:, :] = 0
-    output_image[:5, :] = 0
-    output_image[:, :5] = 0
-    output_image[:, -5:] = 0
     return output_image
 
 
@@ -355,6 +353,7 @@ def main(to_save: bool = False) -> None:
     # create the output plot.
     create_corner_plots(checkerboard, checkerboard_corners, giraffe,
                         giraffe_corners, to_save)
+    a=0
 
 
 if __name__ == "__main__":
