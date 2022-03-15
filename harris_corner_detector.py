@@ -251,7 +251,19 @@ def our_harris_corner_detector(input_image: np.ndarray, K: float,
     non_max_supp = image_tiles_to_black_and_white_image(non_max_supp_tiles, height, width)
     output_image = np.zeros((height, width))
     output_image[non_max_supp > threshold] = 1
-    return output_image
+
+    # post-processing of the dots
+    processed_output_image = np.zeros((height, width))
+    processed_output_image[non_max_supp > threshold] = 1
+    # loop over the connection points between tiles and choose the maximal point only (window of (6,6))
+    for row_tile_corner in range(25,height, 25):
+        for col_tile_corner in range(25, width, 25):
+            if sum(sum(output_image[row_tile_corner-3:row_tile_corner+3,col_tile_corner-3:col_tile_corner+3] > 0)) > 1:
+                processed_output_image[row_tile_corner-3:row_tile_corner+3,col_tile_corner-3:col_tile_corner+3] =0
+                max_idx = np.unravel_index(np.argmax(non_max_supp[row_tile_corner-3:row_tile_corner+3,col_tile_corner-3:col_tile_corner+3]), (6, 6))
+                processed_output_image[row_tile_corner-3:row_tile_corner+3,col_tile_corner-3:col_tile_corner+3][max_idx] = 1
+
+    return processed_output_image
 
 
 def plot_response_for_black_an_white_image(input_image: np.ndarray,
@@ -353,7 +365,6 @@ def main(to_save: bool = False) -> None:
     # create the output plot.
     create_corner_plots(checkerboard, checkerboard_corners, giraffe,
                         giraffe_corners, to_save)
-    a=0
 
 
 if __name__ == "__main__":
